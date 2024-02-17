@@ -175,13 +175,59 @@ const handleDriverRef = app =>{
 
 
 const handleDriverSurname = app =>{
-            app.get('/api/drivers/search/:substring', async (req, res) => {
-                const {substring} = req.params;
-                newString = substring.toLowerCase() //clean it
+        app.get('/api/drivers/search/:substring', async (req, res) => {
+            const {substring} = req.params;
+            newString = substring.toLowerCase() //clean it
+            const { data, error } = await supabase
+                .from('drivers')
+                .select()
+                .ilike('surname', `${newString}%`) // ilike for case-insensitive comparison
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+            });
+};
+
+
+
+const handleDriverRaceID= app =>{
+        app.get('/api/drivers/race/:raceId', async (req, res) => {
+                const {raceId} = req.params;
                 const { data, error } = await supabase
-                    .from('drivers')
-                    .select()
-                    .ilike('surname', `${newString}%`) // ilike for case-insensitive comparison
+                .from('results')
+                .select(`drivers(*)`) //get all 
+                .eq('raceId', raceId);
+                console.log(data)
+                console.log(error)
+            
+                if (error) {
+                    res.status(500).send({ error: 'Internal Server Error' });
+                } else {
+                    if (data.length === 0) {
+                        res.status(404).send({ message: 'No data found for the provided parameters' });
+                    } else {
+                        res.json(data);
+                }
+            }
+            });
+};
+
+const handleRaceID= app =>{
+        app.get('/api/races/:raceId', async (req, res) => {
+                const {raceId} = req.params;
+                const { data, error } = await supabase
+                .from('races')
+                .select(`*,circuits(name,location,country)`) //get all 
+                .eq('raceId', raceId);
+                console.log(data)
+                console.log(error)
             
                 if (error) {
                     res.status(500).send({ error: 'Internal Server Error' });
@@ -192,56 +238,119 @@ const handleDriverSurname = app =>{
                         res.json(data);
                     }
                 }
-             });
+            });
 };
 
 
 
-const handleDriverRaceID= app =>{
-            app.get('/api/drivers/race/:raceId', async (req, res) => {
-                    const {raceId} = req.params;
-                    const { data, error } = await supabase
-                    .from('results')
-                    .select(`drivers(*)`) //get all 
-                    .eq('raceId', raceId);
-                    console.log(data)
-                    console.log(error)
-                
-                    if (error) {
-                        res.status(500).send({ error: 'Internal Server Error' });
-                    } else {
-                        if (data.length === 0) {
-                            res.status(404).send({ message: 'No data found for the provided parameters' });
-                        } else {
-                            res.json(data);
-                    }
+const handleRaceSeason= app =>{
+    app.get('/api/races/season/:year', async (req, res) => {
+            const {year} = req.params;
+            const { data, error } = await supabase
+            .from("races")
+            .select() 
+            .eq('year', year)
+            .order("round", { ascending: true });
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
                 }
-            });
+            }
+    });
 };
 
-const handleRaceID= app =>{
-                    app.get('/api/races/:raceId', async (req, res) => {
-                            const {raceId} = req.params;
-                            const { data, error } = await supabase
-                            .from('races')
-                            .select(`*,circuits(name,location,country)`) //get all 
-                            .eq('raceId', raceId);
-                            console.log(data)
-                            console.log(error)
-                        
-                            if (error) {
-                                res.status(500).send({ error: 'Internal Server Error' });
-                            } else {
-                                if (data.length === 0) {
-                                    res.status(404).send({ message: 'No data found for the provided parameters' });
-                                } else {
-                                    res.json(data);
-                                }
-                            }
-            });
+const handleRaceSeasonAndRound = app =>{
+    app.get('/api/races/season/:year/:round', async (req, res) => {
+            const {year,round} = req.params;
+            const { data, error } = await supabase
+            .from("races")
+            .select() 
+            .eq('year', year)
+            .eq('round',round)
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
 };
 
-module.exports ={handleAllSeasons,handleAllCircuits, handleCircuitRef,handleCircuitYear,handleAllConstructors,handleConstructorRef,handleAllDrivers,handleDriverRef,handleDriverSurname,handleDriverRaceID,handleRaceID}
+
+const handleRaceForCircuit = app =>{
+    app.get('/api/races/circuits/:ref', async (req, res) => {
+            const {ref} = req.params;
+            const { data, error } = await supabase
+            .from('circuits')
+            .select(`circuitRef,races (*)`)
+            .eq('circuitRef', ref)
+            .order('year', { referencedTable: 'races', ascending: true })
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+const handleRaceForCircuitAndYear = app =>{
+    app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
+            const {ref,start,end} = req.params;
+            const { data, error } = await supabase
+            .from('circuits')
+            .select(`circuitRef,races (*)`)
+            .eq('circuitRef', ref)
+            .gte("races.year",start)
+            .lte("races.year",end)
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+const handleResultsWithRaceID = app =>{
+    app.get('/api/results/:raceId', async (req, res) => {
+            const {raceId} = req.params;
+            const { data, error } = await supabase
+            .from('results')
+            .select(`raceId,grid, drivers(driverRef, code, forename, surname), races(name, round, year,date),constructors(name, constructorRef, nationality)`)
+            .eq('raceId',raceId)
+            .order("grid", { ascending: true });
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+module.exports ={handleAllSeasons,handleAllCircuits, handleCircuitRef,handleCircuitYear,handleAllConstructors,handleConstructorRef,handleAllDrivers,handleDriverRef,handleDriverSurname,handleDriverRaceID,handleRaceID,handleRaceSeason,handleRaceSeasonAndRound,handleRaceForCircuit,handleRaceForCircuitAndYear,handleResultsWithRaceID}
 
 
 
