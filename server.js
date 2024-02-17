@@ -14,6 +14,8 @@ routeHandler.handleDriverRef(app)
 routeHandler.handleDriverSurname(app)
 routeHandler.handleDriverRaceID(app)
 routeHandler.handleRaceID(app)
+routeHandler.handleRaceSeason(app)
+routeHandler.handleRaceSeasonAndRound(app)
 
 app.use( (req, res) => {
     res.status(404).send('404: Page not found')
