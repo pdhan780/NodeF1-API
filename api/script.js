@@ -317,7 +317,7 @@ const handleRaceForCircuitAndYear = app =>{
             .gte("races.year",start)
             .lte("races.year",end)
         
-            if (error) {
+            if (error || end < start) {
                 res.status(500).send({ error: 'Internal Server Error' });
             } else {
                 if (data.length === 0) {
@@ -350,7 +350,118 @@ const handleResultsWithRaceID = app =>{
     });
 };
 
-module.exports ={handleAllSeasons,handleAllCircuits, handleCircuitRef,handleCircuitYear,handleAllConstructors,handleConstructorRef,handleAllDrivers,handleDriverRef,handleDriverSurname,handleDriverRaceID,handleRaceID,handleRaceSeason,handleRaceSeasonAndRound,handleRaceForCircuit,handleRaceForCircuitAndYear,handleResultsWithRaceID}
+const handleResultsWithDriver = app =>{
+    app.get('/api/results/driver/:ref', async (req, res) => {
+            const {ref} = req.params;
+            const { data, error } = await supabase
+            .from('drivers')
+            .select(`driverRef,results(*)`)
+            .eq('driverRef',ref)
+            console.log(error)
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+
+const handleResultsForDriverAndYear = app =>{
+    app.get('/api/results/drivers/:ref/seasons/:start/:end', async (req, res) => {
+            const {ref,start,end} = req.params;
+            const { data, error } = await supabase
+            .from('results')
+            .select('drivers!inner (*),races!inner (*)')
+            .eq('drivers.driverRef',ref)
+            .gte("races.year",start)
+            .lte("races.year",end)
+           
+            console.log(error)
+        
+            if (error || end < start) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+const handleResultsForQualifyingWithRaceID = app =>{
+    app.get('/api/qualifying/:raceId', async (req, res) => {
+            const {raceId} = req.params;
+            const { data, error } = await supabase
+            .from('qualifying')
+            .select(`qualifyId, drivers(driverRef, code, forename, surname), races(name, round, year,date),constructors(name, constructorRef, nationality)`)
+            .eq('raceId',raceId)
+            .order("position", { ascending: true });
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+const handleStandingsWithRaceID = app =>{
+    app.get('/api/standings/drivers/:raceId', async (req, res) => {
+            const {raceId} = req.params;
+            const { data, error } = await supabase
+            .from('driverStandings')
+            .select(`position,drivers!inner (*),races!inner (name)`)
+            .eq('raceId',raceId)
+            .order("position", { ascending: true });
+            console.log(error)
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+const handleConstructorStandingsWithRaceID = app =>{
+    app.get('/api/standings/constructors/:raceId', async (req, res) => {
+            const {raceId} = req.params;
+            const { data, error } = await supabase
+            .from('constructorStandings')
+            .select(`position, constructors!inner (*), races!inner (name)`)
+            .eq('raceId',raceId)
+            .order("position", { ascending: true });
+            console.log(error)
+        
+            if (error) {
+                res.status(500).send({ error: 'Internal Server Error' });
+            } else {
+                if (data.length === 0) {
+                    res.status(404).send({ message: 'No data found for the provided parameters' });
+                } else {
+                    res.json(data);
+                }
+            }
+    });
+};
+
+module.exports ={handleAllSeasons,handleAllCircuits, handleCircuitRef,handleCircuitYear,handleAllConstructors,handleConstructorRef,handleAllDrivers,handleDriverRef,handleDriverSurname,handleDriverRaceID,handleRaceID,handleRaceSeason,handleRaceSeasonAndRound,handleRaceForCircuit,handleRaceForCircuitAndYear,handleResultsWithRaceID,handleResultsWithDriver,handleResultsForDriverAndYear,handleResultsForQualifyingWithRaceID,handleStandingsWithRaceID,handleConstructorStandingsWithRaceID}
 
 
 
