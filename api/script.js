@@ -9,44 +9,33 @@ const supabase = supa.createClient(supaUrl, supaAnonKey);
 const handleAllSeasons = app => {
     // Define a route handler for GET requests to '/api/seasons'
     app.get('/api/seasons', async (req, res) => {
-        try {
             // Fetch data from Supabase
             const { data, error } = await supabase.from('seasons').select(); 
 
-            // If there's an error fetching data, handle it
+            // If there's an error with query
             if (error) {
-                throw error;
+                res.status(500).send({ error: 'Internal Server Error' });
             }
 
-            // Send the fetched data as the response
+            else{
             res.json(data);
-        } catch (error) {
-            // If an error occurs, log it and send a 500 status code with an error message
-            console.error(error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
+            }
+    
+      
     });
 };
 
 const handleAllCircuits = app => {
-    // Define a route handler for GET requests to '/api/seasons'
     app.get('/api/circuits', async (req, res) => {
-        try {
-            // Fetch data from Supabase
+    
             const { data, error } = await supabase.from('circuits').select(); 
 
-            // If there's an error fetching data, handle it
             if (error) {
-                throw error;
+                res.status(500).send({ error: 'Internal Server Error' });
             }
-
-            // Send the fetched data as the response
+            else{
             res.json(data);
-        } catch (error) {
-            // If an error occurs, log it and send a 500 status code with an error message
-            console.error(error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
+            }
     });
 };
 
@@ -91,24 +80,20 @@ const handleCircuitYear = app =>{
 
 
 const handleAllConstructors= app => {
-    // Define a route handler for GET requests to '/api/seasons'
     app.get('/api/constructors', async (req, res) => {
-        try {
             // Fetch data from Supabase
             const { data, error } = await supabase.from('constructors').select(); 
 
             // If there's an error fetching data, handle it
             if (error) {
-                throw error;
+                res.status(500).send({ error: 'Internal Server Error' });
             }
-
+            
+            else{
             // Send the fetched data as the response
             res.json(data);
-        } catch (error) {
-            // If an error occurs, log it and send a 500 status code with an error message
-            console.error(error);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
+            }
+        
     });
 };
 
@@ -131,24 +116,20 @@ const handleConstructorRef = app =>{
 
 
 const handleAllDrivers= app => {
-        // Define a route handler for GET requests to '/api/seasons'
         app.get('/api/drivers', async (req, res) => {
-            try {
                 // Fetch data from Supabase
                 const { data, error } = await supabase.from('drivers').select(); 
     
                 // If there's an error fetching data, handle it
                 if (error) {
-                    throw error;
+                    res.status(500).send({ error: 'Internal Server Error' });
                 }
     
+                else{
                 // Send the fetched data as the response
                 res.json(data);
-            } catch (error) {
-                // If an error occurs, log it and send a 500 status code with an error message
-                console.error(error);
-                res.status(500).json({ error: 'Internal Server Error' });
-            }
+                }
+        
         });
     };
 
@@ -310,22 +291,27 @@ const handleRaceForCircuit = app =>{
 const handleRaceForCircuitAndYear = app =>{
     app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
             const {ref,start,end} = req.params;
-            const { data, error } = await supabase
-            .from('circuits')
-            .select(`circuitRef,races (*)`)
-            .eq('circuitRef', ref)
-            .gte("races.year",start)
-            .lte("races.year",end)
-        
-            if (error || end < start) {
-                res.status(500).send({ error: 'Internal Server Error' });
-            } else {
-                if (data.length === 0) {
-                    res.status(404).send({ message: 'No data found for the provided parameters' });
-                } else {
-                    res.json(data);
-                }
+            if(end < start){
+                res.status(404).send({ error: 'Start must be less then end' });  
             }
+            else{
+                const { data, error } = await supabase
+                .from('circuits')
+                .select(`circuitRef,races (*)`)
+                .eq('circuitRef', ref)
+                .gte("races.year",start)
+                .lte("races.year",end)
+            
+                if (error || end < start) {
+                    res.status(500).send({ error: 'Internal Server Error' });
+                } else {
+                    if (data.length === 0) {
+                        res.status(404).send({ message: 'No data found for the provided parameters' });
+                    } else {
+                        res.json(data);
+                    }
+                }
+        }
     });
 };
 
@@ -373,26 +359,31 @@ const handleResultsWithDriver = app =>{
 
 
 const handleResultsForDriverAndYear = app =>{
-    app.get('/api/results/drivers/:ref/seasons/:start/:end', async (req, res) => {
+    app.get('/api/results/driver/:ref/seasons/:start/:end', async (req, res) => {
             const {ref,start,end} = req.params;
-            const { data, error } = await supabase
-            .from('results')
-            .select('drivers!inner (*),races!inner (*)')
-            .eq('drivers.driverRef',ref)
-            .gte("races.year",start)
-            .lte("races.year",end)
-           
-            console.log(error)
-        
-            if (error || end < start) {
-                res.status(500).send({ error: 'Internal Server Error' });
-            } else {
-                if (data.length === 0) {
-                    res.status(404).send({ message: 'No data found for the provided parameters' });
-                } else {
-                    res.json(data);
-                }
+            if (end < start){
+                res.status(404).send({ message: 'Start must be less then end' }); 
             }
+            else{
+                const { data, error } = await supabase
+                .from('results')
+                .select('drivers!inner (*),races!inner (*)')
+                .eq('drivers.driverRef',ref)
+                .gte("races.year",start)
+                .lte("races.year",end)
+            
+                console.log(error)
+            
+                if (error || end < start) {
+                    res.status(500).send({ error: 'Internal Server Error' });
+                } else {
+                    if (data.length === 0) {
+                        res.status(404).send({ message: 'No data found for the provided parameters' });
+                    } else {
+                        res.json(data);
+                    }
+                }
+        } 
     });
 };
 
@@ -418,7 +409,7 @@ const handleResultsForQualifyingWithRaceID = app =>{
 };
 
 const handleStandingsWithRaceID = app =>{
-    app.get('/api/standings/drivers/:raceId', async (req, res) => {
+    app.get('/api/standings/:raceId/drivers', async (req, res) => {
             const {raceId} = req.params;
             const { data, error } = await supabase
             .from('driverStandings')
@@ -440,7 +431,7 @@ const handleStandingsWithRaceID = app =>{
 };
 
 const handleConstructorStandingsWithRaceID = app =>{
-    app.get('/api/standings/constructors/:raceId', async (req, res) => {
+    app.get('/api/standings/:raceId/constructors', async (req, res) => {
             const {raceId} = req.params;
             const { data, error } = await supabase
             .from('constructorStandings')
