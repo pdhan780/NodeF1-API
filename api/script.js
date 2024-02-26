@@ -274,7 +274,7 @@ const handleRaceForCircuit = app =>{
             const {ref} = req.params;
             const { data, error } = await supabase
             .from('circuits')
-            .select(`circuitRef,name,races (*)`)
+            .select(`circuitRef,name,races (raceId,name,year)`)
             .eq('circuitRef', ref)
             .order('year', { referencedTable: 'races', ascending: true })
         
@@ -299,7 +299,7 @@ const handleRaceForCircuitAndYear = app =>{
             else{
                 const { data, error } = await supabase
                 .from('circuits')
-                .select(`circuitRef,races (*)`)
+                .select(`circuitRef,name, races (raceId,name,year)`)
                 .eq('circuitRef', ref)
                 .gte("races.year",start)
                 .lte("races.year",end)
