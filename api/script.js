@@ -252,7 +252,7 @@ const handleRaceSeasonAndRound = app =>{
             const {year,round} = req.params;
             const { data, error } = await supabase
             .from("races")
-            .select() 
+            .select('raceId, year, round, name, date, time') 
             .eq('year', year)
             .eq('round',round)
         
@@ -415,7 +415,7 @@ const handleStandingsWithRaceID = app =>{
             const {raceId} = req.params;
             const { data, error } = await supabase
             .from('driverStandings')
-            .select(`position,drivers!inner (*),races!inner (name)`)
+            .select(`position,drivers!inner (driverRef, code, forename, surname),races!inner (name)`)
             .eq('raceId',raceId)
             .order("position", { ascending: true });
             console.log(error)
