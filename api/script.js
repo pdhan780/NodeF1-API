@@ -6,6 +6,8 @@ const supaAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = supa.createClient(supaUrl, supaAnonKey);
 
 
+
+
 const handleAllSeasons = app => {
     // Define a route handler for GET requests to '/api/seasons'
     app.get('/api/seasons', async (req, res) => {
