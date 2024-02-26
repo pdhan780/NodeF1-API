@@ -207,7 +207,7 @@ const handleRaceID= app =>{
                 const {raceId} = req.params;
                 const { data, error } = await supabase
                 .from('races')
-                .select(`*,circuits(name,location,country)`) //get all 
+                .select(`raceId, year, round,circuits(name,location,country)`) //get all 
                 .eq('raceId', raceId);
                 console.log(data)
                 console.log(error)
@@ -231,7 +231,7 @@ const handleRaceSeason= app =>{
             const {year} = req.params;
             const { data, error } = await supabase
             .from("races")
-            .select() 
+            .select('raceId, year, round, name, date, time') 
             .eq('year', year)
             .order("round", { ascending: true });
         
@@ -274,7 +274,7 @@ const handleRaceForCircuit = app =>{
             const {ref} = req.params;
             const { data, error } = await supabase
             .from('circuits')
-            .select(`circuitRef,races (*)`)
+            .select(`circuitRef,name,races (*)`)
             .eq('circuitRef', ref)
             .order('year', { referencedTable: 'races', ascending: true })
         
@@ -304,7 +304,7 @@ const handleRaceForCircuitAndYear = app =>{
                 .gte("races.year",start)
                 .lte("races.year",end)
             
-                if (error || end < start) {
+                if (error) {
                     res.status(500).send({ error: 'Internal Server Error' });
                 } else {
                     if (data.length === 0) {
@@ -369,14 +369,14 @@ const handleResultsForDriverAndYear = app =>{
             else{
                 const { data, error } = await supabase
                 .from('results')
-                .select('drivers!inner (*),races!inner (*)')
+                .select('resultId, number, grid, position, positionText, positionOrder, points, laps, time, fastestLap,drivers!inner (*),races!inner (*)')
                 .eq('drivers.driverRef',ref)
                 .gte("races.year",start)
                 .lte("races.year",end)
             
                 console.log(error)
             
-                if (error || end < start) {
+                if (error) {
                     res.status(500).send({ error: 'Internal Server Error' });
                 } else {
                     if (data.length === 0) {
@@ -437,7 +437,7 @@ const handleConstructorStandingsWithRaceID = app =>{
             const {raceId} = req.params;
             const { data, error } = await supabase
             .from('constructorStandings')
-            .select(`position, constructors!inner (*), races!inner (name)`)
+            .select(`raceId,position,races!inner (name), constructors!inner (*)`)
             .eq('raceId',raceId)
             .order("position", { ascending: true });
             console.log(error)
