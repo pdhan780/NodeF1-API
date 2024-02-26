@@ -1,4 +1,4 @@
-#COMP 4513 Assignment 1: Building an API with Node
+# COMP 4513 Assignment 1: Building an API with Node
 
 
 https://modern-nice-fuchsia.glitch.me/api/seasons
