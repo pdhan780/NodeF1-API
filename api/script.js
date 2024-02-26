@@ -437,7 +437,7 @@ const handleConstructorStandingsWithRaceID = app =>{
             const {raceId} = req.params;
             const { data, error } = await supabase
             .from('constructorStandings')
-            .select(`raceId,position,races!inner (name), constructors!inner (*)`)
+            .select(`raceId,position, constructors!inner (name, constructorRef, nationality)`)
             .eq('raceId',raceId)
             .order("position", { ascending: true });
             console.log(error)
