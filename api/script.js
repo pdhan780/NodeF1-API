@@ -142,7 +142,7 @@ const handleAllDrivers= app => {
 const handleDriverRef = app =>{
         app.get('/api/drivers/:ref', async (req, res) => {
             const {ref} = req.params;
-            const { data, error } = await supabase.from('drivers').select().eq('driverRef',ref)
+            const { data, error } = await supabase.from('drivers').select().ilike('driverRef',ref)
         
             if (error) {
                 res.status(500).send({ error: 'Internal Server Error' });
